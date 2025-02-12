@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+SignUp
+{% endblock title %}
+
+{% block head %}
+<style>
+    .alert {
+        transition: opacity 0.3s ease-in-out;
+    }
+    
+    .alert.fade-out {
+        opacity: 0;
+    }
+    
+    .alert.fade-in {
+        opacity: 1;
+    }
+
+    #password-requirements {
+        transition: all 0.3s ease-in-out;
+        opacity: 0;
+        display: block !important;
+        visibility: hidden;
+    }
+
+    #password-requirements.show {
+        opacity: 1;
+        visibility: visible;
+    }
+</style>
+
+<h1>Sign Up Here</h1>
+
+<div class="container mt-2">
+    <div class="row">
+        <div class="col-md-3"> </div>
+        <div class="col-md-6">
+            {% for message in messages %}
+            <div class="alert alert-{{message.tags}} alert-dismissible fade show" role="alert" id="alert-{{forloop.counter}}">
+                <strong></strong> {{message}}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+            
+            <form action="/signup" method="post">{% csrf_token %}
+                <div class="form-group">
+                    <input type="tel" class="form-control mb-2" name="usernumber" placeholder="Phone Number" pattern="[0-9]{10}" title="Please enter a 10-digit phone number" required>
+                </div>
+
+                <div class="form-group">
+                    <input type="email" class="form-control" name="email" placeholder="Email" required>
+                </div>
+
+                <div class="form-group">
+                    <input type="password" class="form-control mt-2" name="pass1" 
+                           id="password"
+                           placeholder="Password" 
+                           pattern="^(?=.*[A-Z])(?=.*[!@#$%^&*])(?=.*[0-9])(?=.*[a-z]).{8,}$"
+                           
+                </div>
+                
+                <div class="form-group">
+                    <input type="password" class="form-control mt-2" name="pass2" 
+                           id="confirm-password"
+                           placeholder="Confirm Password" 
+                           pattern="^(?=.*[A-Z])(?=.*[!@#$%^&*])(?=.*[0-9])(?=.*[a-z]).{8,}$"
+                           title="Password must be at least 8 characters long and contain at least one uppercase letter, one special character (!@#$%^&*), and one number"
+                           required>
+                </div>
+                <br>
+                
+                <div class="d-grid gap-2">
+                    <button class="btn btn-light" type="submit">Signup</button>
+                </div>
+            </form>
+            <br><a href="/login">Already User?</a>
+        </div>
+        <div class="col-md-3"></div>
+    </div>
+</div>
+
+<script>
+    // Function to handle alert fade out
+    function fadeOutAlert(alertElement) {
+        alertElement.classList.add('fade-out');
+        setTimeout(() => {
+            alertElement.style.display = 'none';
+        }, 300); // Match the transition duration
+    }
+
+    // Add fade out to all alerts after 5 seconds
+    document.querySelectorAll('.alert').forEach(alert => {
+        setTimeout(() => {
+            fadeOutAlert(alert);
+        }, 5000);
+    });
+
+    // Password validation code
+    document.getElementById('password').addEventListener('input', function(e) {
+        const password = e.target.value;
+        const requirements = document.getElementById('password-requirements');
+        const lengthCheck = document.getElementById('length-check');
+        const upperCheck = document.getElementById('upper-check');
+        const specialCheck = document.getElementById('special-check');
+        const numberCheck = document.getElementById('number-check');
+        const lowerCheck = document.getElementById('lower-check');
+        
+        // Show/hide requirements with animation
+        if (password.length > 0) {
+            requirements.classList.add('show');
+        } else {
+            requirements.classList.remove('show');
+        }
+        
+        // Rest of the password validation code remains unchanged
+        if (password.length >= 8) {
+            lengthCheck.innerHTML = '✅ At least 8 characters long';
+            lengthCheck.style.color = 'green';
+        } else {
+            lengthCheck.innerHTML = '❌ At least 8 characters long';
+            lengthCheck.style.color = 'red';
+        }
+        
+        if (/[A-Z]/.test(password)) {
+            upperCheck.innerHTML = '✅ At least one uppercase letter';
+            upperCheck.style.color = 'green';
+        } else {
+            upperCheck.innerHTML = '❌ At least one uppercase letter';
+            upperCheck.style.color = 'red';
+        }
+        
+        if (/[!@#$%^&*]/.test(password)) {
+            specialCheck.innerHTML = '✅ At least one special character (!@#$%^&*)';
+            specialCheck.style.color = 'green';
+        } else {
+            specialCheck.innerHTML = '❌ At least one special character (!@#$%^&*)';
+            specialCheck.style.color = 'red';
+        }
+        
+        if (/[0-9]/.test(password)) {
+            numberCheck.innerHTML = '✅ At least one number';
+            numberCheck.style.color = 'green';
+        } else {
+            numberCheck.innerHTML = '❌ At least one number';
+            numberCheck.style.color = 'red';
+        }
+        
+        if (/[a-z]/.test(password)) {
+            lowerCheck.innerHTML = '✅ At least one lowercase letter';
+            lowerCheck.style.color = 'green';
+        } else {
+            lowerCheck.innerHTML = '❌ At least one lowercase letter';
+            lowerCheck.style.color = 'red';
+        }
+    });
+
+    // Password confirmation check remains unchanged
+    document.getElementById('confirm-password').addEventListener('input', function(e) {
+        const password = document.getElementById('password').value;
+        const confirmPassword = e.target.value;
+        
+        if (confirmPassword.length > 0) {
+            if (password !== confirmPassword) {
+                e.target.setCustomValidity("Passwords don't match");
+            } else {
+                e.target.setCustomValidity('');
+            }
+        }
+    });
+</script>
+
+{% endblock head %}
+
+{% block body %}
+{% endblock body %}

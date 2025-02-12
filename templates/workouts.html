@@ -1,0 +1,580 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Workouts{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/shared_styles.css' %}">
+<h2 class="text-center mb-4 fw-bold">Personalized Workout Recommendations</h2>
+<h4 class="text-center mb-4">Scroll below for workout recommendations</h4>
+<div class="scroll-arrow" onclick="scrollToContent()">
+    <i class="bi bi-arrow-down-circle-fill"></i>
+</div>
+
+<script>
+function scrollToContent() {
+    const content = document.querySelector('.workouts-container');
+    content.scrollIntoView({ behavior: 'smooth' });
+}
+</script>
+
+<style>
+    /* Scroll Arrow Styles */
+    .scroll-arrow {
+        position: relative;
+        width: 56px;
+        height: 56px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        margin: 24px auto 0 auto;
+        box-shadow: 0 4px 16px rgba(33,147,176,0.18);
+        transition: all 0.3s;
+        border: none;
+    }
+    .scroll-arrow:hover {
+        background: rgba(255,255,255,0.3);
+        transform: translateY(7px) scale(1.08);
+    }
+    .scroll-arrow i {
+        color: #fff;
+        font-size: 2rem;
+        animation: bounce 2s infinite;
+    }
+    @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+        }
+        40% {
+            transform: translateY(-10px);
+        }
+        60% {
+            transform: translateY(-5px);
+        }
+    }
+</style>
+
+<style>
+    .workouts-list .workout-item h5,
+    .workouts-list .workout-item p,
+    .workouts-list .workout-item small,
+    .workouts-list .workout-item label {
+        color: #ffffff;
+    }
+</style>
+
+{% endblock head %}
+
+{% block body %}
+<div class="workouts-container">
+    <div class="container-fluid px-4 workouts-content">
+        {% if not demographics %}
+        <div class="alert alert-warning text-center w-75 mx-auto modern-card">
+            <h4 class="alert-heading fw-bold" style="color:#fff;">Complete Your Profile First!</h4>
+            <p>To get personalized workout recommendations, please complete your demographics information.</p>
+            <hr class="divider">
+            <p class="mb-0">
+                <a href="{% url 'demographics' %}" class="btn btn-primary">Go to Demographics</a>
+            </p>
+        </div>
+        {% else %}
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="modern-card h-100">
+                    <h4 class="fw-bold mb-3">Based on your profile:</h4>
+                    <ul class="list-unstyled mb-0">
+                        <li><strong>Goal:</strong> {{ demographics.get_fitness_goal_display }}</li>
+                        <li><strong>Activity Level:</strong> {{ demographics.get_activity_level_display }}</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h4 class="mb-0 fw-bold">Recommended Workouts</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="workouts-list">
+                            {% for workout in recommended_workouts %}
+                            <div class="workout-item mb-3" id="workout-{{ workout.id }}" data-workout-type="recommended">
+                                <h5>{{ workout.name }}</h5>
+                                <p>{{ workout.description }}</p>
+                                <small>Duration: {{ workout.duration }} minutes | Difficulty: {{ workout.get_difficulty_display }}</small>
+                                <form method="POST" action="{% url 'complete_workout' workout.id %}" class="mt-2" onsubmit="handleWorkoutCompletion(event, '{{ workout.id }}', 'recommended')">
+                                    {% csrf_token %}
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="complete-{{ workout.id }}" name="completed">
+                                        <label class="form-check-label" for="complete-{{ workout.id }}">Mark as completed</label>
+                                    </div>
+                                    <button type="button" class="btn btn-primary mt-2" 
+                                            data-workout-id="{{ workout.id }}" 
+                                            data-workout-type="recommended" 
+                                            onclick="getNextWorkout('{{ workout.id }}', 'recommended')">Next Workout</button>
+                                </form>
+                            </div>
+                            {% empty %}
+                            <p>No workouts available at the moment.</p>
+                            {% endfor %}
+                        </div>
+                        <div class="new-recommendations" id="new-recommendations"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h4 class="mb-0 fw-bold">Alternative Workouts</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="workouts-list">
+                        {% for workout in alternative_workouts %}
+                        <div class="workout-item mb-3" id="workout-alt-{{ workout.id }}" data-workout-type="alternative">
+                            <h5>{{ workout.name }}</h5>
+                            <p>{{ workout.description }}</p>
+                            <small>Duration: {{ workout.duration }} minutes | Difficulty: {{ workout.get_difficulty_display }}</small>
+                            <form method="POST" action="{% url 'complete_workout' workout.id %}" class="mt-2" onsubmit="handleWorkoutCompletion(event, '{{ workout.id }}', 'alternative')">
+                                {% csrf_token %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="complete-alt-{{ workout.id }}" name="completed">
+                                    <label class="form-check-label" for="complete-alt-{{ workout.id }}">Mark as completed</label>
+                                </div>
+                                <button type="button" class="btn btn-primary mt-2" 
+                                        data-workout-id="{{ workout.id }}" 
+                                        data-workout-type="alternative" 
+                                        onclick="getNextWorkout('{{ workout.id }}', 'alternative')">Next Workout</button>
+                            </form>
+                        </div>
+                        {% empty %}
+                        <p>No alternative workouts available at the moment.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+        <div class="divider"></div>
+        <!-- Video Tutorials Section -->
+        <div class="mt-5">
+            <h3 class="text-center mb-4 fw-bold video-section-title">Video Tutorials</h3>
+            <div class="video-grid">
+                {% for video in workout_videos %}
+                <div class="video-card">
+                    <div class="card-body p-0">
+                        {% if video.video_id %}
+                        <div class="ratio ratio-16x9">
+                            <iframe src="https://www.youtube.com/embed/{{ video.video_id }}" title="{{ video.title }}" allowfullscreen loading="lazy"></iframe>
+                        </div>
+                        {% else %}
+                        <div class="ratio ratio-16x9 bg-dark d-flex align-items-center justify-content-center">
+                            <p class="text-center p-3">Video not available</p>
+                        </div>
+                        {% endif %}
+                        <div class="p-3">
+                            <h6 class="card-title">{{ video.title }}</h6>
+                            <p class="card-text small">{{ video.description|truncatewords:30 }}</p>
+                            <small class="text-muted">Recommended for: {{ video.workout_name }}</small>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <p class="mb-0">No video tutorials available at the moment.</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% if alternative_videos %}
+        <div class="mt-5">
+            <h3 class="text-center mb-4 fw-bold alt-video-section-title">More Workout Videos</h3>
+            <div class="video-grid">
+                {% for video in alternative_videos %}
+                <div class="video-card">
+                    <div class="card-body p-0">
+                        {% if video.video_id %}
+                        <div class="ratio ratio-16x9">
+                            <iframe src="https://www.youtube.com/embed/{{ video.video_id }}" title="{{ video.title }}" allowfullscreen loading="lazy"></iframe>
+                        </div>
+                        {% else %}
+                        <div class="ratio ratio-16x9 bg-dark d-flex align-items-center justify-content-center">
+                            <p class="text-center p-3">Video not available</p>
+                        </div>
+                        {% endif %}
+                        <div class="p-3">
+                            <h6 class="card-title">{{ video.title }}</h6>
+                            <p class="card-text small">{{ video.description|truncatewords:30 }}</p>
+                            <small class="text-muted">Recommended for: {{ video.workout_name }}</small>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function handleWorkoutCompletion(event, workoutId, workoutType) {
+    event.preventDefault();
+    const form = event.target;
+    const workoutItem = document.getElementById(`workout-${workoutType === 'alternative' ? 'alt-' : ''}${workoutId}`);
+    const checkbox = form.querySelector('input[type="checkbox"]');
+    
+    if (!checkbox.checked) {
+        alert('Please check the box to mark the workout as completed.');
+        return;
+    }
+    
+    // Get workout details from the DOM
+    const workoutName = workoutItem.querySelector('h5').textContent;
+    const workoutDuration = workoutItem.querySelector('small').textContent.match(/Duration: (\d+)/)[1];
+    const workoutDifficulty = workoutItem.querySelector('small').textContent.match(/Difficulty: ([^|]+)/)[1].trim();
+    
+    // Create form data with workout details
+    const formData = new FormData(form);
+    formData.append('workout_name', workoutName);
+    formData.append('workout_duration', workoutDuration);
+    formData.append('workout_difficulty', workoutDifficulty);
+    
+    // Submit the form via AJAX
+    fetch(form.action, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Server response:', data);
+        
+        if (data.success) {
+            // Show success message
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'alert alert-success mt-3';
+            messageDiv.textContent = data.message;
+            form.parentNode.insertBefore(messageDiv, form.nextSibling);
+            
+            // Update tracker stats if available
+            if (data.stats) {
+                updateTrackerStats(data.stats);
+            }
+            
+            // Disable the checkbox and form after completion
+            checkbox.disabled = true;
+            form.querySelector('button[type="button"]').disabled = false;
+            
+            // Remove the success message after 5 seconds
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 5000);
+        } else {
+            // Show error message
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'alert alert-warning mt-3';
+            errorDiv.textContent = data.message;
+            form.parentNode.insertBefore(errorDiv, form.nextSibling);
+            
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 3000);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'alert alert-danger mt-3';
+        errorDiv.textContent = 'An error occurred while completing the workout.';
+        form.parentNode.insertBefore(errorDiv, form.nextSibling);
+        
+        setTimeout(() => {
+            errorDiv.remove();
+        }, 3000);
+    });
+}
+
+function updateTrackerStats(stats) {
+    console.log('Updating tracker stats with:', stats);
+    
+    // First, check if we're on the tracker page
+    const trackerContent = document.querySelector('.tracker-content');
+    console.log('Tracker content element found:', !!trackerContent);
+    
+    if (!trackerContent) {
+        console.log('Tracker page not loaded, skipping update');
+        return;
+    }
+    
+    // Update weekly stats
+    if (stats.weekly_stats) {
+        console.log('Weekly stats found:', stats.weekly_stats);
+        const weeklyStats = stats.weekly_stats;
+        
+        // Update duration progress
+        const durationProgress = document.querySelector('.progress-stats .stat-item:nth-child(1) .progress-bar');
+        console.log('Duration progress element found:', !!durationProgress);
+        if (durationProgress) {
+            console.log('Updating duration progress to:', weeklyStats.duration_percentage);
+            durationProgress.style.width = `${weeklyStats.duration_percentage}%`;
+            durationProgress.setAttribute('aria-valuenow', weeklyStats.duration_percentage);
+            const durationText = durationProgress.parentElement.nextElementSibling;
+            if (durationText) {
+                durationText.textContent = `${weeklyStats.total_duration} / ${weeklyStats.weekly_goal} minutes logged this week`;
+                console.log('Updated duration text:', durationText.textContent);
+            } else {
+                console.log('Duration text element not found');
+            }
+        }
+        
+        // Update calories progress
+        const caloriesProgress = document.querySelector('.progress-stats .stat-item:nth-child(2) .progress-bar');
+        console.log('Calories progress element found:', !!caloriesProgress);
+        if (caloriesProgress) {
+            console.log('Updating calories progress to:', weeklyStats.calories_percentage);
+            caloriesProgress.style.width = `${weeklyStats.calories_percentage}%`;
+            caloriesProgress.setAttribute('aria-valuenow', weeklyStats.calories_percentage);
+            const caloriesText = caloriesProgress.parentElement.nextElementSibling;
+            if (caloriesText) {
+                caloriesText.textContent = `${weeklyStats.total_calories} / ${weeklyStats.calories_goal} calories burned this week`;
+                console.log('Updated calories text:', caloriesText.textContent);
+            } else {
+                console.log('Calories text element not found');
+            }
+        }
+
+        // Update streak
+        const streakCount = document.querySelector('.streak-count');
+        console.log('Streak count element found:', !!streakCount);
+        if (streakCount && stats.streak !== undefined) {
+            console.log('Updating streak to:', stats.streak);
+            streakCount.textContent = `${stats.streak} days`;
+        }
+    } else {
+        console.log('No weekly stats found in response');
+    }
+    
+    // Update recent activities
+    if (stats.recent_activities) {
+        console.log('Recent activities found:', stats.recent_activities.length);
+        const activityList = document.querySelector('.activity-list');
+        console.log('Activity list element found:', !!activityList);
+        if (activityList) {
+            // Clear existing activities
+            activityList.innerHTML = '';
+            
+            // Add new activities
+            stats.recent_activities.forEach(activity => {
+                const activityItem = document.createElement('div');
+                activityItem.className = 'activity-item';
+                
+                let activityHTML = `
+                    <div class="activity-info">
+                        <h5>${activity.name}</h5>`;
+                
+                if (activity.is_workout) {
+                    activityHTML += `
+                        <p class="activity-type">Workout - ${activity.difficulty}</p>`;
+                }
+                
+                activityHTML += `
+                        <p>${activity.duration} minutes | ${activity.calories} calories</p>`;
+                
+                if (activity.notes) {
+                    activityHTML += `
+                        <p class="activity-notes">${activity.notes}</p>`;
+                }
+                
+                activityHTML += `
+                        <small>${activity.date}</small>
+                    </div>`;
+                
+                activityItem.innerHTML = activityHTML;
+                activityList.appendChild(activityItem);
+            });
+            console.log('Updated activity list with', stats.recent_activities.length, 'activities');
+            
+            // Show message if no activities
+            if (stats.recent_activities.length === 0) {
+                activityList.innerHTML = '<p>No activities logged yet.</p>';
+                console.log('No activities to display');
+            }
+        }
+    } else {
+        console.log('No recent activities found in response');
+    }
+}
+
+function getNextWorkout(workoutId, workoutType) {
+    console.log('getNextWorkout called with:', { workoutId, workoutType });
+    const workoutItem = document.getElementById(`workout-${workoutType === 'alternative' ? 'alt-' : ''}${workoutId}`);
+    console.log('Found workout item:', workoutItem);
+    const checkbox = workoutItem.querySelector('input[type="checkbox"]');
+    console.log('Checkbox state:', checkbox.checked);
+    
+    if (!checkbox.checked) {
+        alert('Please mark the workout as completed first.');
+        return;
+    }
+    
+    // Show loading state
+    const nextButton = workoutItem.querySelector(`button[data-workout-id="${workoutId}"]`);
+    const originalButtonText = nextButton.textContent;
+    nextButton.disabled = true;
+    nextButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...';
+    
+    // Add completed class to trigger fade animation
+    workoutItem.classList.add('completed');
+    
+    // First complete the current workout
+    const form = workoutItem.querySelector('form');
+    const formData = new FormData(form);
+    const workoutName = workoutItem.querySelector('h5').textContent;
+    const workoutDuration = workoutItem.querySelector('small').textContent.match(/Duration: (\d+)/)[1];
+    const workoutDifficulty = workoutItem.querySelector('small').textContent.match(/Difficulty: ([^|]+)/)[1].trim();
+    
+    formData.append('workout_name', workoutName);
+    formData.append('workout_duration', workoutDuration);
+    formData.append('workout_difficulty', workoutDifficulty);
+    
+    console.log('Submitting workout completion with data:', {
+        workoutName,
+        workoutDuration,
+        workoutDifficulty
+    });
+    
+    // Submit the form via AJAX first
+    fetch(form.action, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Workout completion response:', data);
+        
+        // Check if workout was successfully completed or already completed today
+        if (!data.success && data.message && data.message.includes('already completed today')) {
+            console.log('Workout already completed today, proceeding to get next workout.');
+            // Don't throw an error, proceed to the next fetch
+        } else if (!data.success) {
+            // If success is false for any other reason, throw an error
+            throw new Error(data.message || 'Failed to complete workout');
+        }
+        
+        // If successful (or already completed), get new recommendations
+        return fetch(`/workouts/get_new_recommendations/${workoutId}/?workout_type=${workoutType}`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        });
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('New recommendations response:', data);
+        if (data.success) {
+            // Get the appropriate container based on workout type
+            const container = document.querySelector(
+                workoutType === 'recommended' 
+                    ? '.col-md-4:nth-child(2) .card-body .workouts-list'
+                    : '.col-md-4:nth-child(3) .card-body .workouts-list'
+            );
+            
+            // Remove the completed workout after animation
+            setTimeout(() => {
+                workoutItem.remove();
+                
+                // Process new workout if available
+                if (data.workout) {
+                    const newWorkout = createWorkoutElement(data.workout, workoutType === 'alternative');
+                    container.appendChild(newWorkout);
+                    // Trigger fade-in animation
+                    setTimeout(() => {
+                        newWorkout.style.opacity = '1';
+                        newWorkout.style.transform = 'translateY(0)';
+                    }, 50);
+                }
+                
+                // Show message if no more workouts
+                if (!data.workout && container.querySelectorAll('.workout-item').length === 0) {
+                    const noWorkoutsMsg = document.createElement('div');
+                    noWorkoutsMsg.className = 'alert alert-info mt-3';
+                    noWorkoutsMsg.textContent = `No more ${workoutType} workouts available at the moment.`;
+                    container.appendChild(noWorkoutsMsg);
+                }
+                
+                // Update tracker stats if available
+                if (data.stats) {
+                    console.log('Updating tracker stats with:', data.stats);
+                    updateTrackerStats(data.stats);
+                }
+            }, 700);
+        } else {
+            throw new Error(data.message || 'Failed to get new workouts');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        // Show error message to user
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'alert alert-danger mt-3';
+        errorDiv.textContent = 'Failed to load new workouts. Please try again.';
+        workoutItem.parentNode.insertBefore(errorDiv, workoutItem.nextSibling);
+        
+        // Reset button state
+        nextButton.disabled = false;
+        nextButton.textContent = originalButtonText;
+        
+        // Remove error message after 3 seconds
+        setTimeout(() => errorDiv.remove(), 3000);
+    });
+}
+
+// Update createWorkoutElement to include data attributes
+function createWorkoutElement(workout, isAlternative) {
+    const workoutType = isAlternative ? 'alternative' : 'recommended';
+    const workoutDiv = document.createElement('div');
+    workoutDiv.className = 'workout-item mb-3';
+    workoutDiv.id = `workout-${isAlternative ? 'alt-' : ''}${workout.id}`;
+    workoutDiv.setAttribute('data-workout-type', workoutType);
+    workoutDiv.style.opacity = '0';
+    workoutDiv.style.transform = 'translateY(20px)';
+    workoutDiv.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+
+    workoutDiv.innerHTML = `
+        <h5>${workout.name}</h5>
+        <p>${workout.description}</p>
+        <small>Duration: ${workout.duration} minutes | Difficulty: ${workout.difficulty}</small>
+        <form method="POST" action="/workouts/complete/${workout.id}/" class="mt-2" onsubmit="handleWorkoutCompletion(event, '${workout.id}', '${workoutType}')">
+            <input type="hidden" name="csrfmiddlewaretoken" value="${document.querySelector('[name=csrfmiddlewaretoken]').value}">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="complete-${isAlternative ? 'alt-' : ''}${workout.id}" name="completed">
+                <label class="form-check-label" for="complete-${isAlternative ? 'alt-' : ''}${workout.id}">Mark as completed</label>
+            </div>
+            <button type="button" class="btn btn-primary mt-2" 
+                    data-workout-id="${workout.id}" 
+                    data-workout-type="${workoutType}" 
+                    onclick="getNextWorkout('${workout.id}', '${workoutType}')">Next Workout</button>
+        </form>
+    `;
+
+    return workoutDiv;
+}
+
+</script>
+{% endblock body %}

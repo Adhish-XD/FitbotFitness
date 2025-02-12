@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+About Us
+{% endblock title %}
+
+{% block head %}
+<h1>About FitbotFitness</h1>
+<p>Your Personal Fitness Journey Starts Here</p>
+{% endblock head %}
+
+{% block body %}
+<section class="about section">
+  <div class="container" data-aos="fade-up" data-aos-delay="100">
+    <div class="row gy-4">
+      <div class="col-lg-6 order-1 order-lg-2">
+        <img src="{% static 'assets/img/about.jpg' %}" class="img-fluid" alt="About FitbotFitness">
+      </div>
+      <div class="col-lg-6 order-2 order-lg-1 content">
+        <h3>Welcome to FitbotFitness</h3>
+        <p class="fst-italic">
+          Your personal AI-powered fitness companion that helps you achieve your fitness goals through personalized workouts and expert guidance.
+        </p>
+        <ul>
+          <li><i class="bi bi-check2-all"></i> <span>Personalized workout recommendations based on your fitness goals and activity level</span></li>
+          <li><i class="bi bi-check2-all"></i> <span>AI-powered chatbot for instant fitness advice and answers to your questions</span></li>
+          <li><i class="bi bi-check2-all"></i> <span>Track your progress with detailed activity logging and statistics</span></li>
+          <li><i class="bi bi-check2-all"></i> <span>Expert-curated workout videos and tutorials</span></li>
+        </ul>
+        <p>
+          At FitbotFitness, we believe that everyone deserves access to quality fitness guidance. Our platform combines cutting-edge AI technology with expert fitness knowledge to provide you with a personalized fitness experience. Whether you're just starting your fitness journey or looking to take your workouts to the next level, FitbotFitness is here to support you every step of the way.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="features section">
+  <div class="container">
+    <div class="row gy-4">
+      <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
+        <div class="service-item position-relative">
+          <div class="icon">
+            <i class="bi bi-activity"></i>
+          </div>
+          <h3>Personalized Workouts</h3>
+          <p>Get workout recommendations tailored to your fitness goals, activity level, and preferences. Our AI analyzes your profile to suggest the perfect exercises for you.</p>
+        </div>
+      </div>
+
+      <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200">
+        <div class="service-item position-relative">
+          <div class="icon">
+            <i class="bi bi-robot"></i>
+          </div>
+          <h3>AI Fitness Assistant</h3>
+          <p>Chat with our AI-powered fitness assistant anytime for instant answers to your fitness questions, workout tips, and motivation.</p>
+        </div>
+      </div>
+
+      <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
+        <div class="service-item position-relative">
+          <div class="icon">
+            <i class="bi bi-graph-up"></i>
+          </div>
+          <h3>Progress Tracking</h3>
+          <p>Monitor your fitness journey with detailed activity logs, workout history, and progress statistics. Stay motivated by seeing how far you've come.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock body %} 

@@ -1,0 +1,22 @@
+{% for workout in workouts %}
+<div class="workout-item mb-3" id="workout-{{ workout.id }}" data-workout-type="{% if forloop.first %}recommended{% else %}alternative{% endif %}">
+    <h5 style="color: white; font-weight: bold; text-decoration: underline;">{{ workout.name }}</h5>
+    <p class="mb-1">{{ workout.description }}</p>
+    <small class="text-muted">Duration: {{ workout.duration }} minutes | Difficulty: {{ workout.get_difficulty_display }}</small>
+    <form method="POST" action="{% url 'complete_workout' workout.id %}" class="mt-2">
+        {% csrf_token %}
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="complete-{{ workout.id }}" 
+                   name="completed">
+            <label class="form-check-label" for="complete-{{ workout.id }}" style="color: white;">
+                Mark as completed
+            </label>
+        </div>
+        <button type="button" class="btn btn-primary mt-2">Next Workout</button>
+    </form>
+</div>
+{% empty %}
+<div class="alert alert-info">
+    <p class="mb-0">No new recommendations available at the moment.</p>
+</div>
+{% endfor %} 

@@ -1,0 +1,407 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Fitness Tracker{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/shared_styles.css' %}">
+<link rel="stylesheet" href="{% static 'css/tracker.css' %}">
+
+<style>
+    /* General Body and Background Styles */
+    body {
+        font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+        background: #181c1f; /* Dark background */
+    }
+    .tracker-container {
+        min-height: 100vh;
+        /* Optional: Add a background image if desired, similar to workouts */
+        /* background-image: url("{% static 'assets/img/gym-bg.jpg' %}"); */
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        padding-top: 100px; /* Adjust based on header height */
+        position: relative;
+    }
+    .tracker-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(18, 22, 25, 0.85); /* Dark overlay */
+        z-index: 1;
+    }
+    .tracker-content {
+        position: relative;
+        z-index: 2;
+        color: #fff; /* White text */
+    }
+
+    /* Card Styles */
+    .modern-card, .card {
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(16px);
+        border-radius: 18px;
+        border: 1px solid rgba(255,255,255,0.15);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+        margin-bottom: 2rem;
+        padding: 2rem 1.5rem;
+        transition: box-shadow 0.3s;
+    }
+    .modern-card:hover, .card:hover {
+        box-shadow: 0 12px 40px rgba(33,147,176,0.18);
+    }
+    .card-header {
+        background: transparent !important;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+        padding-bottom: 0.75rem;
+        margin-bottom: 1rem;
+    }
+    .card-header h4, .modern-card h4, .card-title {
+        color: #fff !important;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+     .card-body {
+        color: #f3f6fa;
+        padding: 1rem 0 0 0;
+    }
+    .text-muted {
+        color: #b0b8c1 !important; /* Lighter text for details */
+    }
+
+    /* Heading Styles */
+     h2.text-center.fw-bold {
+        font-size: 2.2rem;
+        letter-spacing: 0.5px;
+        color: #fff;
+    }
+    h4.text-center {
+        font-weight: 500;
+        color: #b0b8c1;
+    }
+
+    /* Form and Button Styles */
+     .form-label {
+        color: #fff !important; /* Label color */
+    }
+    .form-control, .form-select {
+        background-color: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: #fff;
+    }
+    .form-control::placeholder {
+        color: #b0b8c1;
+    }
+    .form-control:focus, .form-select:focus {
+        background-color: rgba(255, 255, 255, 0.15);
+        border-color: #6dd5ed;
+        box-shadow: 0 0 0 0.25rem rgba(109, 213, 237, 0.25);
+        color: #fff;
+    }
+    .btn-primary {
+        background: linear-gradient(135deg, #2193b0, #6dd5ed);
+        border: none;
+        font-weight: 600;
+        border-radius: 8px;
+        padding: 0.5rem 1.2rem;
+        transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+        box-shadow: 0 2px 8px rgba(33,147,176,0.10);
+    }
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #6dd5ed, #2193b0);
+        box-shadow: 0 4px 16px rgba(33,147,176,0.18);
+        transform: translateY(-2px) scale(1.04);
+    }
+    .divider {
+        border-top: 1px solid rgba(255,255,255,0.10);
+        margin: 2.5rem 0 2rem 0;
+    }
+    .alert {
+        border-radius: 10px;
+        font-size: 1.05rem;
+        padding: 1.2rem 1.5rem;
+    }
+
+    /* Scroll Arrow Styles */
+    .scroll-arrow {
+        position: relative;
+        width: 56px;
+        height: 56px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        margin: 24px auto 0 auto;
+        box-shadow: 0 4px 16px rgba(33,147,176,0.18);
+        transition: all 0.3s;
+        border: none;
+    }
+    .scroll-arrow:hover {
+        background: rgba(255,255,255,0.3);
+        transform: translateY(7px) scale(1.08);
+    }
+    .scroll-arrow i {
+        color: #fff;
+        font-size: 2rem;
+        animation: bounce 2s infinite;
+    }
+    @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+        }
+        40% {
+            transform: translateY(-10px);
+        }
+        60% {
+            transform: translateY(-5px);
+        }
+    }
+
+    /* Specific Tracker Styles - Adjusting existing ones */
+    /* These styles ensure consistency within the tracker's specific elements */
+
+    .tracker .progress {
+      height: 10px;
+      margin: 10px 0;
+      background-color: rgba(255,255,255,0.1);
+      border-radius: 5px;
+    }
+    .tracker .progress-bar {
+      background: linear-gradient(135deg, #2193b0, #6dd5ed);
+      border-radius: 5px;
+    }
+
+    .tracker .activity-list {
+      max-height: 300px;
+      overflow-y: auto;
+      padding-right: 15px; /* Add some padding for scrollbar */
+    }
+    .tracker .activity-item {
+      padding: 15px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      color: #f3f6fa;
+    }
+    .tracker .activity-item:last-child {
+      border-bottom: none;
+    }
+    .tracker .activity-info {
+      padding-left: 20px;
+    }
+    .tracker .activity-info h5 {
+      margin-bottom: 5px;
+      color: #fff;
+      font-weight: 600;
+    }
+    .tracker .activity-info p {
+      margin-bottom: 5px;
+      color: #b0b8c1;
+      font-size: 0.95rem;
+    }
+    .tracker .activity-info small {
+      color: #8fd3f4;
+      font-size: 0.9rem;
+    }
+    
+    /* Adjust padding for card body content */
+    .card-body > .progress-stats, .card-body > .activity-list {
+        padding: 0 1.5rem 1rem 1.5rem; /* Match card padding */
+    }
+     .card-body > .progress-stats > .stat-item, .card-body > .activity-list > .activity-item {
+        padding: 0;
+     }
+      .card-body > .activity-list > .activity-item {
+          padding: 15px 0;
+      }
+      .card-body > .activity-list {
+          padding-top: 0; /* Remove top padding if first item has top padding */
+      }
+
+    /* Add these styles to your existing CSS */
+    .streak-info {
+        text-align: center;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        margin-top: 1rem;
+    }
+
+    .streak-count {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #6dd5ed;
+        margin-bottom: 0.5rem;
+    }
+
+    .streak-label {
+        color: #b0b8c1;
+        font-size: 0.9rem;
+    }
+
+    .activity-type {
+        color: #6dd5ed;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .activity-notes {
+        color: #b0b8c1;
+        font-style: italic;
+        font-size: 0.9rem;
+        margin: 0.5rem 0;
+    }
+
+    /* Add left padding to activity info */
+    .tracker .activity-item .activity-info {
+        padding-left: 20px;
+    }
+
+    .progress-stats .stat-item {
+        margin-bottom: 1.5rem;
+    }
+
+    .progress-stats .stat-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .progress-stats p {
+        margin-top: 0.5rem;
+        color: #b0b8c1;
+        font-size: 0.9rem;
+    }
+
+</style>
+
+{# Content above the scroll arrow #}
+<h2 class="text-center mb-4 fw-bold">Fitness Tracker</h2>
+<h4 class="text-center mb-4">Track your fitness journey and monitor your progress!</h4>
+<div class="scroll-arrow" onclick="scrollToContent()">
+    <i class="bi bi-arrow-down-circle-fill"></i>
+</div>
+
+<script>
+function scrollToContent() {
+    const content = document.querySelector('#tracker-main-content'); // Target the new main content div
+    if (content) {
+        content.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+</script>
+{% endblock head %}
+
+{% block body %}
+<section id="tracker" class="tracker section"> {# Keep the section with ID for potential external linking #}
+    <div class="tracker-container"> {# Container for background and overlay #}
+        <div class="container-fluid px-4 tracker-content"> {# Container for relative positioning and text color #}
+            <div id="tracker-main-content"> {# New div to target for scrolling #}
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="card mb-4 modern-card"> {# Apply modern-card class #}
+                            <div class="card-body">
+                                <h3 class="card-title">Daily Activity Log</h3>
+                                <form id="activityForm" method="POST" action="{% url 'tracker' %}">
+                                    {% csrf_token %}
+                                    <div class="mb-3">
+                                        <label for="activityType" class="form-label">Activity Type</label>
+                                        <select class="form-select" id="activityType" name="activity_type" required>
+                                            <option style="color: black" value="">Select Activity</option>
+                                            <option style="color: black" value="cardio">Cardio</option>
+                                            <option style="color: black" value="strength">Strength Training</option>
+                                            <option style="color: black" value="flexibility">Flexibility</option>
+                                            <option style="color: black" value="other">Other</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="duration" class="form-label">Duration (minutes)</label>
+                                        <input type="number" class="form-control" id="duration" name="duration" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="calories" class="form-label">Calories Burned</label>
+                                        <input type="number" class="form-control" id="calories" name="calories" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="notes" class="form-label">Notes</label>
+                                        <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Log Activity</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6">
+                        <div class="card mb-4 modern-card"> {# Apply modern-card class #}
+                            <div class="card-body">
+                                <h3 class="card-title">Progress Overview</h3>
+                                <div class="progress-stats">
+                                    <div class="stat-item">
+                                        <h4>Workouts Completed</h4>
+                                        <div class="streak-info">
+                                            <p class="streak-count">{{ profile.workouts_completed }}</p>
+                                            <p class="streak-label">Total workouts logged</p>
+                                        </div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <h4>Total Calories Burned</h4>
+                                        <div class="streak-info">
+                                            <p class="streak-count">{{ total_calories_burned }}</p>
+                                            <p class="streak-label">Total calories across all activities</p>
+                                        </div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <h4>Total Minutes</h4>
+                                        <div class="streak-info">
+                                            <p class="streak-count">{{ profile.total_minutes }}</p>
+                                            <p class="streak-label">Total minutes exercised</p>
+                                        </div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <h4>Current Streak</h4>
+                                        <div class="streak-info">
+                                            <p class="streak-count">{{ streak }} days</p>
+                                            <p class="streak-label">Keep it up!</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card modern-card"> {# Apply modern-card class #}
+                            <div class="card-body">
+                                <h3 class="card-title">Recent Activities</h3>
+                                <div class="activity-list"> {# Keep activity-list styles #}
+                                    {% if activities %}
+                                        {% for activity in activities %}
+                                        <div class="activity-item"> {# Keep activity-item styles #}
+                                            <div class="activity-info"> {# Keep activity-info styles #}
+                                                {% if activity.activity_type == 'workout' %}
+                                                    <h5>{{ activity.workout_name }}</h5>
+                                                    <p class="activity-type">Workout - {{ activity.workout_difficulty }}</p>
+                                                {% else %}
+                                                    <h5>{{ activity.get_activity_type_display }}</h5>
+                                                {% endif %}
+                                                <p>{{ activity.duration }} minutes | {{ activity.calories }} calories</p>
+                                                {% if activity.notes %}
+                                                    <p class="activity-notes">{{ activity.notes }}</p>
+                                                {% endif %}
+                                                <small>{{ activity.date|date:"F j, Y, g:i a" }}</small>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <p>No activities logged yet.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section> {# Close the section #}
+{% endblock body %} 
