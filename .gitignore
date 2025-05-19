@@ -1,0 +1,62 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+myenv/
+env/
+.venv/
+.env/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.whl
+wheels/
+*.tar.gz
+*.zip
+*.bdist_egg
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+coverage.xml
+nosetests.xml
+pytest-cache/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py*
+db.sqlite3
+db.sqlite3-*
+
+# Flask stuff:
+instance/
+logs/
+*.db
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IDE-specific files
+.idea/
+.vscode/
+*.swp
+*~
+tmp/
+
+.env
